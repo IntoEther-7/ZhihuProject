@@ -20,7 +20,7 @@ public class MDPipeline implements Pipeline {
     private File folder;
 
     public MDPipeline(String path) {
-        file = new File(path);
+        file = new File(path + ".md");
         folder = new File(file.getParent());
 
     }
@@ -49,9 +49,15 @@ public class MDPipeline implements Pipeline {
              * ans_info
              */
             writer.write("%s: [%s](%s)\n".formatted("作者名称", map.get("author_name"), map.get("author_url")));
-            writer.write("%s: <img src=\"%s\\\">\n".formatted("作者头像", map.get("author_img")));
+            writer.write("%s: <img src=\"%s\"/>\n".formatted("作者头像", map.get("author_img")));
             for (String s : (List<String>) map.get("content")) {
-                writer.write((s + "\n"));
+                if (s.startsWith("<img>")) {
+                    writer.write(
+                            "<img src=\"%s\"/>".formatted(s.substring(5))
+                    );
+                } else {
+                    writer.write((s + "\n"));
+                }
             }
             writer.write(((String) map.get("ans_info")));
             writer.flush();

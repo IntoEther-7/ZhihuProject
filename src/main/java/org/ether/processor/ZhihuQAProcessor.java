@@ -6,6 +6,9 @@ package org.ether;
  * @project ZhihuProject
  */
 
+import org.ether.utils.ImageTextHandler;
+import org.ether.zhihu.pipeline.MixPipeline;
+import org.junit.jupiter.api.Test;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
@@ -33,15 +36,8 @@ public class ZhihuQAProcessor implements PageProcessor {
             "div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > meta:nth-child(2)";
     private static final String AUTHOR_URL = ".QuestionAnswer-content > div:nth-child(1) > div:nth-child(1) > " +
             "div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > meta:nth-child(3)";
-    public static final String ANS_CONTENT =
-            "html.itcauecng body div#root div main.App-main div div.QuestionPage " + "div" + ".Question-main div" +
-                    ".ListShortcut div.Question-mainColumn div.Card.AnswerCard.css-0 div" + ".QuestionAnswer-content "
-                    + "div div.ContentItem.AnswerItem div.RichContent.RichContent--unescapable span " + "div" +
-                    ".RichContent-inner div.css-376mun span.RichText.ztext.CopyrightRichText-richText p, img" +
-                    ".origin_image.zh-lightbox-thumb.lazy";
-    private static final String ANS_INFO_TIME = "html.itcauecng body div#root div main.App-main div div.QuestionPage "
-            + "div.Question-main div.ListShortcut div.Question-mainColumn div.Card.AnswerCard.css-0 div" +
-            ".QuestionAnswer-content div div.ContentItem.AnswerItem div.RichContent.RichContent--unescapable div div" + ".ContentItem-time";
+    public static final String ANS_CONTENT = ".QuestionAnswer-content .ContentItem.AnswerItem .ztext h1, h2, " + "h3,"
+            + " h4, h5, h6, p, figure";
     private static final String ANS_INFO = ".ContentItem-time";
 
     @Override
@@ -53,19 +49,7 @@ public class ZhihuQAProcessor implements PageProcessor {
         // 文章内容处理
         Selectable content = page.getHtml().css(ANS_CONTENT);
         List<String> all = content.all();
-        for (int i = 0; i < all.size(); i++) {
-            // 如果涉及图像?
-            String s = all.get(i);
-            if (s.contains("<img")) {
-                Pattern pattern = Pattern.compile("data-original=\\\"(.+)\\\" ");
-                Matcher matcher = pattern.matcher(s);
-                while (matcher.find()) {
-                    all.set(i, "<img src=\"%s\\\">".formatted(matcher.group(1)));
-                }
-                continue;
-            }
-            all.set(i, s.replaceAll("<[^>]+>", "").replaceAll("<\\[^>]+>", ""));
-        }
+        ImageTextHandler.htmlHandle(all);
         page.putField("content", all);
 
         // 发布时间
@@ -82,7 +66,7 @@ public class ZhihuQAProcessor implements PageProcessor {
         Pattern pattern = Pattern.compile("question/(\\d*)/answer/(\\d*)");
         Matcher matcher = pattern.matcher(url);
         if (matcher.find()) {
-            return "D:\\webmagic\\www.zhihu.com\\Q%sA%s.md".formatted(matcher.group(1), matcher.group(2));
+            return "D:\\webmagic\\www.zhihu.com\\Q%sA%s".formatted(matcher.group(1), matcher.group(2));
         } else {
             return "1";
         }
@@ -92,11 +76,14 @@ public class ZhihuQAProcessor implements PageProcessor {
         Scanner sc = new Scanner(System.in);
         String url = sc.nextLine();
 
-        Spider.create(new ZhihuQAProcessor())
-                //从"https://github.com/code4craft"开始抓
-                .addUrl(url)
-                .thread(1)
-                .addPipeline(new MDPipeline(folderName(url)))
-                .run();
+        Spider.create(new ZhihuQAProcessor()).addUrl(url).thread(1).addPipeline(new MixPipeline(folderName(url))).run();
+    }
+
+    @Test
+    public void test() {
+        String url = "https://www.zhihu.com/question/26995490/answer/2992571705";
+
+        Spider.create(new ZhihuQAProcessor()).addUrl(url).thread(3).addPipeline(new MixPipeline(folderName(url))).run();
     }
 }
+
