@@ -1,6 +1,6 @@
 package org.ether.zhihu.pipeline;
 
-import org.ether.MDPipeline;
+import org.ether.pipeline.MDPipeline;
 import org.ether.pipeline.WordPipeline;
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;

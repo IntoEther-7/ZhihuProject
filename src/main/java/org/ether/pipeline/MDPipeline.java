@@ -1,4 +1,4 @@
-package org.ether;
+package org.ether.pipeline;
 
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
